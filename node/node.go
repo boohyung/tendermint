@@ -352,7 +352,7 @@ func (n *Node) ProxyApp() proxy.AppConns {
 func makeNodeInfo(config cfg.Config, sw *p2p.Switch, privKey crypto.PrivKeyEd25519) *p2p.NodeInfo {
 
 	nodeInfo := &p2p.NodeInfo{
-		PubKey:  privKey.PubKey().(crypto.PubKeyEd25519),
+		PubKey:  privKey.PubKey().Unwrap().(crypto.PubKeyEd25519),
 		Moniker: config.GetString("moniker"),
 		Network: config.GetString("chain_id"),
 		Version: version.Version,
