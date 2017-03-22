@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/abci/types"
 	. "github.com/tendermint/go-common"
+	data "github.com/tendermint/go-data"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
 )
@@ -78,7 +79,7 @@ func TestJSONBroadcastTxSync(t *testing.T) {
 	testBroadcastTxSync(t, tmResult, tx)
 }
 
-func testBroadcastTxSync(t *testing.T, resI interface{}, tx []byte) {
+func testBroadcastTxSync(t *testing.T, resI interface{}, tx types.Tx) {
 	tmRes := resI.(*ctypes.TMResult)
 	res := (*tmRes).(*ctypes.ResultBroadcastTx)
 	require.Equal(t, abci.CodeType_OK, res.Code)
@@ -92,10 +93,10 @@ func testBroadcastTxSync(t *testing.T, resI interface{}, tx []byte) {
 //--------------------------------------------------------------------------------
 // query
 
-func testTxKV(t *testing.T) ([]byte, []byte, []byte) {
+func testTxKV(t *testing.T) ([]byte, []byte, types.Tx) {
 	k := randBytes(t)
 	v := randBytes(t)
-	return k, v, []byte(Fmt("%s=%s", k, v))
+	return k, v, types.Tx(Fmt("%s=%s", k, v))
 }
 
 func sendTx(t *testing.T) ([]byte, []byte) {
@@ -123,7 +124,7 @@ func TestJSONABCIQuery(t *testing.T) {
 	testABCIQuery(t, tmResult, v)
 }
 
-func testABCIQuery(t *testing.T, statusI interface{}, value []byte) {
+func testABCIQuery(t *testing.T, statusI interface{}, value data.Bytes) {
 	tmRes := statusI.(*ctypes.TMResult)
 	resQuery := (*tmRes).(*ctypes.ResultABCIQuery)
 	require.EqualValues(t, 0, resQuery.Response.Code)

@@ -1,9 +1,11 @@
 package core
 
 import (
+	data "github.com/tendermint/go-data"
 	rpc "github.com/tendermint/go-rpc/server"
 	"github.com/tendermint/go-rpc/types"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/tendermint/tendermint/types"
 )
 
 // TODO: better system than "unsafe" prefix
@@ -148,7 +150,7 @@ func NumUnconfirmedTxsResult() (ctypes.TMResult, error) {
 	}
 }
 
-func BroadcastTxCommitResult(tx []byte) (ctypes.TMResult, error) {
+func BroadcastTxCommitResult(tx types.Tx) (ctypes.TMResult, error) {
 	if r, err := BroadcastTxCommit(tx); err != nil {
 		return nil, err
 	} else {
@@ -156,7 +158,7 @@ func BroadcastTxCommitResult(tx []byte) (ctypes.TMResult, error) {
 	}
 }
 
-func BroadcastTxSyncResult(tx []byte) (ctypes.TMResult, error) {
+func BroadcastTxSyncResult(tx types.Tx) (ctypes.TMResult, error) {
 	if r, err := BroadcastTxSync(tx); err != nil {
 		return nil, err
 	} else {
@@ -164,7 +166,7 @@ func BroadcastTxSyncResult(tx []byte) (ctypes.TMResult, error) {
 	}
 }
 
-func BroadcastTxAsyncResult(tx []byte) (ctypes.TMResult, error) {
+func BroadcastTxAsyncResult(tx types.Tx) (ctypes.TMResult, error) {
 	if r, err := BroadcastTxAsync(tx); err != nil {
 		return nil, err
 	} else {
@@ -172,7 +174,7 @@ func BroadcastTxAsyncResult(tx []byte) (ctypes.TMResult, error) {
 	}
 }
 
-func ABCIQueryResult(path string, data []byte, prove bool) (ctypes.TMResult, error) {
+func ABCIQueryResult(path string, data data.Bytes, prove bool) (ctypes.TMResult, error) {
 	if r, err := ABCIQuery(path, data, prove); err != nil {
 		return nil, err
 	} else {
