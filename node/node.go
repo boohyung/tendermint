@@ -7,15 +7,17 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	abci "github.com/tendermint/abci/types"
 	cmn "github.com/tendermint/go-common"
-	cfg "github.com/tendermint/go-config"
 	"github.com/tendermint/go-crypto"
 	dbm "github.com/tendermint/go-db"
 	"github.com/tendermint/go-p2p"
 	"github.com/tendermint/go-rpc"
 	"github.com/tendermint/go-rpc/server"
 	"github.com/tendermint/go-wire"
+
 	bc "github.com/tendermint/tendermint/blockchain"
 	"github.com/tendermint/tendermint/consensus"
 	mempl "github.com/tendermint/tendermint/mempool"
@@ -33,7 +35,7 @@ type Node struct {
 	cmn.BaseService
 
 	// config
-	config        cfg.Config           // user config
+	config        *viper.Viper         // user config
 	genesisDoc    *types.GenesisDoc    // initial validator set
 	privValidator *types.PrivValidator // local node's validator key
 
@@ -53,14 +55,14 @@ type Node struct {
 	rpcListeners     []net.Listener              // rpc servers
 }
 
-func NewNodeDefault(config cfg.Config) *Node {
+func NewNodeDefault(config *viper.Viper) *Node {
 	// Get PrivValidator
 	privValidatorFile := config.GetString("priv_validator_file")
 	privValidator := types.LoadOrGenPrivValidator(privValidatorFile)
 	return NewNode(config, privValidator, proxy.DefaultClientCreator(config))
 }
 
-func NewNode(config cfg.Config, privValidator *types.PrivValidator, clientCreator proxy.ClientCreator) *Node {
+func NewNode(config *viper.Viper, privValidator *types.PrivValidator, clientCreator proxy.ClientCreator) *Node {
 
 	// Get BlockStore
 	blockStoreDB := dbm.NewDB("blockstore", config.GetString("db_backend"), config.GetString("db_dir"))
@@ -119,7 +121,11 @@ func NewNode(config cfg.Config, privValidator *types.PrivValidator, clientCreato
 	consensusReactor := consensus.NewConsensusReactor(consensusState, fastSync)
 
 	// Make p2p network switch
-	sw := p2p.NewSwitch(config.GetConfig("p2p"))
+	p2pConfig := viper.New()
+	if config.IsSet("p2p") { //TODO verify this necessary, where is this ever set?
+		p2pConfig = config.Get("p2p").(*viper.Viper)
+	}
+	sw := p2p.NewSwitch(p2pConfig)
 	sw.AddReactor("MEMPOOL", mempoolReactor)
 	sw.AddReactor("BLOCKCHAIN", bcReactor)
 	sw.AddReactor("CONSENSUS", consensusReactor)
@@ -348,7 +354,7 @@ func (n *Node) ProxyApp() proxy.AppConns {
 	return n.proxyApp
 }
 
-func makeNodeInfo(config cfg.Config, sw *p2p.Switch, privKey crypto.PrivKeyEd25519) *p2p.NodeInfo {
+func makeNodeInfo(config *viper.Viper, sw *p2p.Switch, privKey crypto.PrivKeyEd25519) *p2p.NodeInfo {
 
 	nodeInfo := &p2p.NodeInfo{
 		PubKey:  privKey.PubKey().(crypto.PubKeyEd25519),

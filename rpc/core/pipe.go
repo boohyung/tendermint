@@ -1,7 +1,8 @@
 package core
 
 import (
-	cfg "github.com/tendermint/go-config"
+	"github.com/spf13/viper"
+
 	"github.com/tendermint/go-crypto"
 	"github.com/tendermint/go-p2p"
 
@@ -33,7 +34,7 @@ var (
 	// external, thread safe interfaces
 	eventSwitch   types.EventSwitch
 	proxyAppQuery proxy.AppConnQuery
-	config        cfg.Config
+	config        *viper.Viper
 
 	// interfaces defined in types and above
 	blockStore     types.BlockStore
@@ -47,7 +48,7 @@ var (
 	addrBook *p2p.AddrBook
 )
 
-func SetConfig(c cfg.Config) {
+func SetConfig(c *viper.Viper) {
 	config = c
 }
 

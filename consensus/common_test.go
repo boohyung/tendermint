@@ -11,10 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/viper"
+
 	abcicli "github.com/tendermint/abci/client"
 	abci "github.com/tendermint/abci/types"
 	. "github.com/tendermint/go-common"
-	cfg "github.com/tendermint/go-config"
 	dbm "github.com/tendermint/go-db"
 	"github.com/tendermint/go-p2p"
 	bc "github.com/tendermint/tendermint/blockchain"
@@ -27,7 +28,7 @@ import (
 	"github.com/tendermint/abci/example/dummy"
 )
 
-var config cfg.Config // NOTE: must be reset for each _test.go file
+var config *viper.Viper // NOTE: must be reset for each _test.go file
 var ensureTimeout = time.Duration(2)
 
 func ensureDir(dir string, mode os.FileMode) {
@@ -233,7 +234,7 @@ func newConsensusState(state *sm.State, pv *types.PrivValidator, app abci.Applic
 	return newConsensusStateWithConfig(config, state, pv, app)
 }
 
-func newConsensusStateWithConfig(thisConfig cfg.Config, state *sm.State, pv *types.PrivValidator, app abci.Application) *ConsensusState {
+func newConsensusStateWithConfig(thisConfig *viper.Viper, state *sm.State, pv *types.PrivValidator, app abci.Application) *ConsensusState {
 	// Get BlockStore
 	blockDB := dbm.NewMemDB()
 	blockStore := bc.NewBlockStore(blockDB)
@@ -256,7 +257,7 @@ func newConsensusStateWithConfig(thisConfig cfg.Config, state *sm.State, pv *typ
 	return cs
 }
 
-func loadPrivValidator(conf cfg.Config) *types.PrivValidator {
+func loadPrivValidator(conf *viper.Viper) *types.PrivValidator {
 	privValidatorFile := conf.GetString("priv_validator_file")
 	ensureDir(path.Dir(privValidatorFile), 0700)
 	privValidator := types.LoadOrGenPrivValidator(privValidatorFile)

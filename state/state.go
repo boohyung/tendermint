@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/spf13/viper"
+
 	. "github.com/tendermint/go-common"
-	cfg "github.com/tendermint/go-config"
 	dbm "github.com/tendermint/go-db"
 	"github.com/tendermint/go-wire"
 	"github.com/tendermint/tendermint/types"
@@ -119,7 +120,7 @@ func (s *State) GetValidators() (*types.ValidatorSet, *types.ValidatorSet) {
 
 // Load the most recent state from "state" db,
 // or create a new one (and save) from genesis.
-func GetState(config cfg.Config, stateDB dbm.DB) *State {
+func GetState(config *viper.Viper, stateDB dbm.DB) *State {
 	state := LoadState(stateDB)
 	if state == nil {
 		state = MakeGenesisStateFromFile(stateDB, config.GetString("genesis_file"))

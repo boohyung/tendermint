@@ -2,13 +2,13 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/go-config"
 	"github.com/tendermint/go-logger"
 	tmcfg "github.com/tendermint/tendermint/config/tendermint"
 )
 
-var config cfg.Config
+var config *viper.Viper
 var log = logger.New("module", "main")
 
 //global flag
@@ -24,7 +24,7 @@ var RootCmd = &cobra.Command{
 
 func init() {
 
-	// Get configuration
+	// setup configuration
 	config = tmcfg.GetConfig("")
 
 	//parse flag and set config
