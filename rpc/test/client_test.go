@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/abci/types"
 	. "github.com/tendermint/go-common"
 	rpc "github.com/tendermint/go-rpc/client"

@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/go-config"
 	"github.com/tendermint/log15"
 	"github.com/tendermint/tendermint/types"
 )
@@ -39,7 +39,7 @@ func resetPrivValidator(cmd *cobra.Command, args []string) {
 	ResetPrivValidator(config, log)
 }
 
-func ResetAll(c cfg.Config, l log15.Logger) {
+func ResetAll(c *viper.Viper, l log15.Logger) {
 	ResetPrivValidator(c, l)
 	dataDir := c.GetString("db_dir")
 	walFile := c.GetString("cs_wal_file")
@@ -49,7 +49,7 @@ func ResetAll(c cfg.Config, l log15.Logger) {
 	l.Notice("Removed walfile", "file", walFile)
 }
 
-func ResetPrivValidator(c cfg.Config, l log15.Logger) {
+func ResetPrivValidator(c *viper.Viper, l log15.Logger) {
 
 	// Get PrivValidator
 	var privValidator *types.PrivValidator
