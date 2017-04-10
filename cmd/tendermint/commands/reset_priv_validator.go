@@ -36,11 +36,11 @@ func resetAll(cmd *cobra.Command, args []string) {
 // XXX: this is totally unsafe.
 // it's only suitable for testnets.
 func resetPrivValidator(cmd *cobra.Command, args []string) {
-	ResetPrivValidator(config, log)
+	resetPrivValidatorLocal(config, log)
 }
 
 func ResetAll(c *viper.Viper, l log15.Logger) {
-	ResetPrivValidator(c, l)
+	resetPrivValidatorLocal(c, l)
 	dataDir := c.GetString("db_dir")
 	walFile := c.GetString("cs_wal_file")
 	os.RemoveAll(dataDir)
@@ -49,7 +49,7 @@ func ResetAll(c *viper.Viper, l log15.Logger) {
 	l.Notice("Removed walfile", "file", walFile)
 }
 
-func ResetPrivValidator(c *viper.Viper, l log15.Logger) {
+func resetPrivValidatorLocal(c *viper.Viper, l log15.Logger) {
 
 	// Get PrivValidator
 	var privValidator *types.PrivValidator
