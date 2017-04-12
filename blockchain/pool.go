@@ -247,7 +247,7 @@ func (pool *BlockPool) removePeer(peerID string) {
 	log.Notice("removePeer!", "peer", peerID)
 	for _, requester := range pool.requesters {
 		if requester.getPeerID() == peerID {
-			pool.numPending++
+			// pool.numPending++
 			go requester.redo() // pick another peer and ...
 		}
 	}
