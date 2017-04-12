@@ -117,6 +117,7 @@ func (bcR *BlockchainReactor) GetChannels() []*p2p.ChannelDescriptor {
 
 // AddPeer implements Reactor by sending our state to peer.
 func (bcR *BlockchainReactor) AddPeer(peer *p2p.Peer) {
+	log.Notice("Adding peer", "peer", peer)
 	if !peer.Send(BlockchainChannel, struct{ BlockchainMessage }{&bcStatusResponseMessage{bcR.store.Height()}}) {
 		// doing nothing, will try later in `poolRoutine`
 	}
@@ -124,6 +125,7 @@ func (bcR *BlockchainReactor) AddPeer(peer *p2p.Peer) {
 
 // RemovePeer implements Reactor by removing peer from the pool.
 func (bcR *BlockchainReactor) RemovePeer(peer *p2p.Peer, reason interface{}) {
+	log.Notice("Removing peer", "peer", peer, "reason", reason)
 	bcR.pool.RemovePeer(peer.Key)
 }
 
@@ -135,7 +137,7 @@ func (bcR *BlockchainReactor) Receive(chID byte, src *p2p.Peer, msgBytes []byte)
 		return
 	}
 
-	log.Debug("Receive", "src", src, "chID", chID, "msg", msg)
+	log.Info("Receive", "src", src, "chID", chID, "msg", msg)
 
 	switch msg := msg.(type) {
 	case *bcBlockRequestMessage:
@@ -161,6 +163,7 @@ func (bcR *BlockchainReactor) Receive(chID byte, src *p2p.Peer, msgBytes []byte)
 		}
 	case *bcStatusResponseMessage:
 		// Got a peer status. Unverified.
+		log.Notice("Got peer status", "peer", src.Key, "height", msg.Height)
 		bcR.pool.SetPeerHeight(src.Key, msg.Height)
 	default:
 		log.Warn(cmn.Fmt("Unknown message type %v", reflect.TypeOf(msg)))
@@ -180,13 +183,16 @@ FOR_LOOP:
 	for {
 		select {
 		case request := <-bcR.requestsCh: // chan BlockRequest
+			log.Notice("make request", "request", request)
 			peer := bcR.Switch.Peers().Get(request.PeerID)
 			if peer == nil {
+				log.Error("PEER IS DEAD!")
 				continue FOR_LOOP // Peer has since been disconnected.
 			}
 			msg := &bcBlockRequestMessage{request.Height}
 			queued := peer.TrySend(BlockchainChannel, struct{ BlockchainMessage }{msg})
 			if !queued {
+				log.Warn("too many queued")
 				// We couldn't make the request, send-queue full.
 				// The pool handles timeouts, just let it go.
 				continue FOR_LOOP
@@ -201,9 +207,9 @@ FOR_LOOP:
 			// ask for status updates
 			go bcR.BroadcastStatusRequest()
 		case _ = <-switchToConsensusTicker.C:
-			height, numPending, _ := bcR.pool.GetStatus()
+			height, numPending, numRequesters := bcR.pool.GetStatus()
 			outbound, inbound, _ := bcR.Switch.NumPeers()
-			log.Info("Consensus ticker", "numPending", numPending, "total", len(bcR.pool.requesters),
+			log.Info("Consensus ticker", "numPending", numPending, "total", numRequesters,
 				"outbound", outbound, "inbound", inbound)
 			if bcR.pool.IsCaughtUp() {
 				log.Notice("Time to switch to consensus reactor!", "height", height)

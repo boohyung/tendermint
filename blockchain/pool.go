@@ -159,6 +159,7 @@ func (pool *BlockPool) PeekTwoBlocks() (first *types.Block, second *types.Block)
 	if r := pool.requesters[pool.height+1]; r != nil {
 		second = r.getBlock()
 	}
+
 	return
 }
 
@@ -189,6 +190,8 @@ func (pool *BlockPool) RedoRequest(height int) {
 	request := pool.requesters[height]
 	pool.mtx.Unlock()
 
+	log.Notice("Redo Request", "height", "peer", request.peerID)
+
 	if request.block == nil {
 		PanicSanity("Expected block to be non-nil")
 	}
@@ -204,6 +207,7 @@ func (pool *BlockPool) AddBlock(peerID string, block *types.Block, blockSize int
 
 	requester := pool.requesters[block.Height]
 	if requester == nil {
+		log.Notice("AddBlock for nil requester", "block", block.Height)
 		return
 	}
 
@@ -220,6 +224,8 @@ func (pool *BlockPool) AddBlock(peerID string, block *types.Block, blockSize int
 func (pool *BlockPool) SetPeerHeight(peerID string, height int) {
 	pool.mtx.Lock()
 	defer pool.mtx.Unlock()
+
+	log.Notice("set peer height", "peer", peerID, "height", height)
 
 	peer := pool.peers[peerID]
 	if peer != nil {
@@ -238,6 +244,7 @@ func (pool *BlockPool) RemovePeer(peerID string) {
 }
 
 func (pool *BlockPool) removePeer(peerID string) {
+	log.Notice("removePeer!", "peer", peerID)
 	for _, requester := range pool.requesters {
 		if requester.getPeerID() == peerID {
 			pool.numPending++
@@ -255,11 +262,12 @@ func (pool *BlockPool) pickIncrAvailablePeer(minHeight int) *bpPeer {
 
 	for _, peer := range pool.peers {
 		if peer.didTimeout {
+			log.Notice("peer timedout", "peer", peer.id)
 			pool.removePeer(peer.id)
 			continue
-		} else {
 		}
 		if peer.numPending >= maxPendingRequestsPerPeer {
+			log.Notice("max pending for peer", "peer", peer.id)
 			continue
 		}
 		if peer.height < minHeight {
@@ -416,6 +424,7 @@ func (bpr *bpRequester) OnStart() error {
 func (bpr *bpRequester) setBlock(block *types.Block, peerID string) bool {
 	bpr.mtx.Lock()
 	if bpr.block != nil || bpr.peerID != peerID {
+		log.Notice("wtf", "peer_ex", bpr.peerID, "peer_got", peerID)
 		bpr.mtx.Unlock()
 		return false
 	}
@@ -465,7 +474,7 @@ OUTER_LOOP:
 			}
 			peer = bpr.pool.pickIncrAvailablePeer(bpr.height)
 			if peer == nil {
-				//log.Info("No peers available", "height", height)
+				log.Info("No peers available", "height", bpr.height)
 				time.Sleep(requestIntervalMS * time.Millisecond)
 				continue PICK_PEER_LOOP
 			}
