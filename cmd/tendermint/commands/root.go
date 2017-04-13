@@ -23,7 +23,6 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-
 	// setup configuration
 	config = tmcfg.GetConfig("")
 
